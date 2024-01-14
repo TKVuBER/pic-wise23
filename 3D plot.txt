@@ -1,0 +1,37 @@
+#include <stdio.h>
+#include <math.h>
+
+int main(void) {
+    FILE *fp = NULL;        // Ausgabedatei
+    FILE *gnupipe = NULL;   // Stream für die Gnuplot-Pipe
+    char *gnuCommands[] = {"set title '3D Function Demo'",
+                           "splot 'data_3d.tmp' with lines"};
+
+    fp = fopen("data_3d.tmp", "w");
+    gnupipe = popen("gnuplot -persist", "w");
+
+    if (fp == NULL || gnupipe == NULL) {
+        printf("Fehler beim Öffnen der Datei oder der Gnuplot-Pipe.");
+        return 1;
+    }
+
+    // 3D-Funktion schreiben (Beispiel: z = sin(x) * cos(y))
+    fprintf(fp, "# 3D-Funktionswerte\n");
+    for (double x = 0; x <= 2 * M_PI; x += 0.1) {
+        for (double y = 0; y <= 2 * M_PI; y += 0.1) {
+            fprintf(fp, "%f %f %f\n", x, y, sin(x) * cos(y));
+        }
+    }
+
+    fclose(fp);
+
+    // Gnuplot-Befehle senden
+    for (int i = 0; i < 2; i++) {
+        fprintf(gnupipe, "%s\n", gnuCommands[i]);
+    }
+
+    fprintf(gnupipe, "exit\n");
+    pclose(gnupipe);
+
+    return 0;
+}
